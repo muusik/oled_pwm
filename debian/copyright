@@ -1,23 +1,41 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: linux-legacy-oled-brightness
+Upstream-Contact: Chris Xiong <chris@pineapple.cat>
 Source: https://git.chrisoft.org/git/linux-legacy-oled-brightness.git
-
-Files: upstream/linux-legacy-oled-brightness.patch
-Copyright: 2025 Chris Xiong
-License: MIT
-Comment: The new files are MIT (SPDX headers); the hunks change GPL-2.0 and
- MIT files of Linux's i915, which this package builds from linux-source.
- Only its i915 part is applied, not its hunk for drivers/gpu/drm/xe/Makefile.
-
-Files: upstream/gen_panel_prop.py
-Copyright: 2025 Chris Xiong
-License: unknown
-Comment: Upstream states no license for this script.
+Comment: Upstream's repository (at a350d0e, 2026-03-28) has no license file
+ and its README states no license; only the two new kernel files in its
+ patch carry license headers.
 
 Files: *
 Copyright: 2026 Johannes Dahl <muusik@gmail.com>
-License: unknown
-Comment: No license chosen yet.
+License: none-chosen
+
+Files: upstream/linux-legacy-oled-brightness.patch
+Copyright: 2025-2026 Chris Xiong
+License: MIT and none-stated
+Comment: Only its i915 part is applied, not its hunk for
+ drivers/gpu/drm/xe/Makefile. The two files it adds,
+ drivers/gpu/drm/i915/display/intel_dp_legacy_oled_brightness.c and .h, carry
+ "SPDX-License-Identifier: MIT" and "Copyright © 2025 Chris Xiong": MIT.
+ Its changes to existing i915 files state no license of their own; those
+ files are Linux's i915 under the licenses in their own headers (Makefile:
+ GPL-2.0; intel_dp_aux_backlight.c and intel_display_types.h: MIT, copyright
+ Intel Corporation and others). This package builds them from the
+ linux-source package; it ships no other i915 source.
+
+Files: patches/0002-module-firmware.patch
+Copyright: 2026 Johannes Dahl <muusik@gmail.com>
+License: none-chosen
+Comment: Changes intel_dp_legacy_oled_brightness.c, which is MIT (above).
+
+Files: upstream/gen_panel_prop.py
+Copyright: 2025-2026 Chris Xiong
+License: none-stated
+Comment: The script carries no license header. Its tables are values from
+ Lenovo's Windows "Intel OLED Panel Driver" for the ThinkPad X1 Yoga
+ (PanelDriver.inf and PanelDriver.sys). The script itself is not in the
+ binary package; its output is, as
+ /usr/lib/firmware/intel_legacy_panel_data.bin.
 
 License: MIT
  Permission is hereby granted, free of charge, to any person obtaining a
@@ -37,3 +55,11 @@ License: MIT
  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  DEALINGS IN THE SOFTWARE.
+
+License: none-stated
+ The author has not stated a license for this work. No permission to
+ copy, modify or redistribute it is granted beyond what applicable law
+ allows without one.
+
+License: none-chosen
+ No license has been chosen for these files yet.
