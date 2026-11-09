@@ -1,0 +1,29 @@
+Declare the panel data file with MODULE_FIRMWARE, so that initramfs-tools
+copies it into the initramfs along with i915 (it does that for every file
+a module's modinfo lists).
+
+--- a/drivers/gpu/drm/i915/display/intel_dp_legacy_oled_brightness.c
++++ b/drivers/gpu/drm/i915/display/intel_dp_legacy_oled_brightness.c
+@@ -11,9 +11,13 @@
+ #include "intel_dp.h"
+ #include "intel_dp_legacy_oled_brightness.h"
+ #include "linux/firmware.h"
++#include "linux/module.h"
+ #include "linux/slab.h"
+ #include "linux/stdarg.h"
+ 
++#define LEGACY_PANEL_DATA_FW "intel_legacy_panel_data.bin"
++MODULE_FIRMWARE(LEGACY_PANEL_DATA_FW);
++
+ static bool intel_dp_aux_legacy_write_sequence(struct drm_dp_aux *aux,
+ 					       const u32 *address_seq,
+ 					       const u8 *value_seq,
+@@ -379,7 +383,7 @@
+ 	const struct firmware *fw;
+ 	const u8 *pdata;
+ 
+-	ret = request_firmware(&fw, "intel_legacy_panel_data.bin", dev);
++	ret = request_firmware(&fw, LEGACY_PANEL_DATA_FW, dev);
+ 	if (ret < 0)
+ 		return ret;
+ 	ret = 0;

@@ -1,0 +1,108 @@
+#+TITLE: i915-legacy-oled: OLED brightness for the ThinkPad X1 Yoga on Debian
+
+Brightness control for the OLED panel of the ThinkPad X1 Yoga 1st and 2nd gen under Linux, as a DKMS
+module for Debian 14. Stock Linux has none for this panel: =intel_backlight= exists but writing to
+it changes nothing.
+
+The driver is Chris Xiong's reverse engineering of Lenovo's Windows "Intel OLED Panel Driver"
+([[https://chrisoft.org/blog/post/2025-04-28.html][blog post]],
+[[https://git.chrisoft.org/git/linux-legacy-oled-brightness.git][repository]]): a patch to i915 that
+drives the panel's brightness over DP AUX with the values of that driver, loaded from a firmware
+file. This repository packages it for DKMS. The panel firmware values are the same for both
+generations: the =PanelDriver.inf= of Lenovo's Gen 1 package (=n1fdl04w=) and Gen 2 package
+(=n1ndp03w=) are byte-identical. The tables that live in the driver binary itself (IRC, SP) could
+not be compared that way; the upstream README gives its instructions for "1st gen / 2nd gen".
+
+* How it works
+
+The patch changes a structure used all over i915, so the whole =i915.ko= is rebuilt, not a module
+next to it. DKMS takes i915 from Debian's own =linux-source= package at build time, never from a
+copy in this repository, so the module is Debian's i915 of the same kernel plus the patch.
+
+- =dkms.conf= :: builds =i915.ko= and =kvmgt.ko= (i915's GVT module, built from the same tree with
+  the same structures) into =updates/dkms=, which modprobe prefers over the stock ones.
+- =prepare-source.sh= :: the DKMS pre-build step: unpacks =drivers/gpu/drm/i915= from
+  =/usr/src/linux-source-7.2.tar.xz= and applies the i915 part of upstream's patch and =patches/=.
+  It refuses when =linux-source= is not the same Debian version as the kernel's headers, so no
+  mismatched i915 is ever built; the stock i915 stays in use then.
+- =upstream/= :: upstream's repository as a git submodule, at its commit =a350d0e= (2026-03-28).
+  Its files state no license, beyond the two files the patch adds (MIT), so they are not copied
+  into this repository: clone with =--recurse-submodules=, or =git submodule update --init=.
+- =upstream/linux-legacy-oled-brightness.patch= :: upstream's patch; its hunk for the Xe driver is
+  not applied.
+- =patches/0002-module-firmware.patch= :: declares the firmware file with =MODULE_FIRMWARE=, so that
+  =update-initramfs= copies it into the initramfs next to i915.
+- =upstream/gen_panel_prop.py= :: upstream's generator of =intel_legacy_panel_data.bin=, the panel
+  values the driver loads.
+- =test/build.sh= :: builds and installs the module through DKMS in a Debian 14 container (Podman),
+  with the same headers, compiler and dkms as the laptop; output in =test/build.log=.
+
+* Install on the laptop
+
+As root, in a checkout of this repository with its submodule:
+
+#+begin_src sh
+apt install dkms linux-headers-amd64 linux-source openssl
+mkdir -p /usr/src/i915-legacy-oled-0.1
+cp -r --parents dkms.conf prepare-source.sh patches upstream/linux-legacy-oled-brightness.patch \
+  /usr/src/i915-legacy-oled-0.1/
+dkms install i915-legacy-oled/0.1
+
+python3 upstream/gen_panel_prop.py
+install -m 644 intel_legacy_panel_data.bin /lib/firmware/
+
+echo 'options i915 enable_dpcd_backlight=99' > /etc/modprobe.d/i915-legacy-oled.conf
+update-initramfs -u
+#+end_src
+
+The =options= line does what upstream's kernel parameter ~i915.enable_dpcd_backlight=99~ does,
+without editing the boot loader; initramfs-tools copies it into the initramfs.
+
+With Secure Boot on (=mokutil --sb-state=), the kernel loads the module only once DKMS's key is
+enrolled: =mokutil --import /var/lib/dkms/mok.pub=, choose a one-time password, and confirm it in
+the MOK manager at the next boot. Without it i915 fails to load and the screen stays on the
+firmware's framebuffer.
+
+After a reboot:
+
+#+begin_src sh
+modinfo -n i915                          # .../updates/dkms/i915.ko
+dmesg | grep -iE 'legacy|backlight'
+ls /sys/class/backlight/                 # intel_backlight; its brightness should now work
+#+end_src
+
+* Kernel updates
+
+=linux-headers-amd64= and =linux-source= follow Debian's kernel, and DKMS builds the module for each
+new kernel when its headers are installed. If apt unpacks the new headers before the new
+=linux-source=, that build is refused as a version mismatch and the new kernel boots with the stock
+i915 (no brightness control, display fine). Then build it once more and refresh the initramfs:
+
+#+begin_src sh
+dkms autoinstall -k <new version>
+update-initramfs -u -k <new version>
+#+end_src
+
+=dkms status= shows which kernels have it.
+
+* Remove
+
+#+begin_src sh
+dkms remove i915-legacy-oled/0.1 --all
+rm -r /usr/src/i915-legacy-oled-0.1 /etc/modprobe.d/i915-legacy-oled.conf /lib/firmware/intel_legacy_panel_data.bin
+update-initramfs -u -k all
+#+end_src
+
+* Known issues
+
+From upstream: at low brightness the screen sometimes fluctuates; what most of the panel's registers
+do is unknown.
+
+* Test
+
+#+begin_src sh
+test/build.sh [kernel version]
+#+end_src
+
+Needs Podman. The image's apt goes through the apt-cacher-ng in =BL_APT_PROXY= (default
+=http://interval.jazz:3142=; empty for none).
