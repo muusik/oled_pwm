@@ -101,5 +101,5 @@ interface; the 2016-2018 panels use the older protocol this patch implements.
 test/build.sh [kernel version]
 #+end_src
 
-Needs Podman. The images' apt goes through the apt-cacher-ng in =BL_APT_PROXY= (default
-=http://interval.jazz:3142=; empty for none).
+Needs Podman. With =BL_APT_PROXY= set to an apt-cacher-ng (=http://host:3142=), the images' apt goes
+through it; without it, straight to Debian's mirrors. =build-deb.sh= takes it too.

@@ -11,16 +11,21 @@ repo=$(dirname "$here")
 kver=${1:-7.2.15+deb14-amd64}
 image=localhost/oled_pwm-build
 
-# apt-cacher-ng for the image's packages; BL_APT_PROXY= (empty) goes direct.
-BL_APT_PROXY=${BL_APT_PROXY-http://interval.jazz:3142}
-export BL_APT_PROXY
+# An apt-cacher-ng for the image's packages when BL_APT_PROXY names one
+# (http://host:3142); without it apt goes direct.
+proxy_secret=
+if [ -n "${BL_APT_PROXY:-}" ]; then
+	export BL_APT_PROXY
+	proxy_secret="--secret id=apt_proxy,env=BL_APT_PROXY"
+fi
 
 {
 "$repo/build-deb.sh"
+# shellcheck disable=SC2086  # proxy_secret is empty or two words
 podman build -q -t "$image" --build-arg KVER="$kver" \
-	--secret id=apt_proxy,env=BL_APT_PROXY "$here" >/dev/null
+	$proxy_secret "$here" >/dev/null
 
-podman run --rm -v "$repo/dist:/dist:ro" -e KVER="$kver" -e P="$BL_APT_PROXY" "$image" sh -euc '
+podman run --rm -v "$repo/dist:/dist:ro" -e KVER="$kver" -e P="${BL_APT_PROXY:-}" "$image" sh -euc '
 	apt="apt-get -y -q ${P:+-o Acquire::http::Proxy=$P -o Acquire::https::Proxy=DIRECT}"
 	initrd=/boot/initrd.img-$KVER
 	mods() { modinfo -k "$KVER" -n i915 kvmgt; }

@@ -12,10 +12,15 @@ image=localhost/oled_pwm-deb
 	exit 1
 }
 
-# apt-cacher-ng for the image's packages; BL_APT_PROXY= (empty) goes direct.
-BL_APT_PROXY=${BL_APT_PROXY-http://interval.jazz:3142}
-export BL_APT_PROXY
-podman build -q -t "$image" --secret id=apt_proxy,env=BL_APT_PROXY \
+# An apt-cacher-ng for the image's packages when BL_APT_PROXY names one
+# (http://host:3142); without it apt goes direct.
+proxy_secret=
+if [ -n "${BL_APT_PROXY:-}" ]; then
+	export BL_APT_PROXY
+	proxy_secret="--secret id=apt_proxy,env=BL_APT_PROXY"
+fi
+# shellcheck disable=SC2086  # proxy_secret is empty or two words
+podman build -q -t "$image" $proxy_secret \
 	"$repo/packaging" >/dev/null
 
 mkdir -p "$repo/dist"
