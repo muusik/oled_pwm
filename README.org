@@ -20,11 +20,13 @@ next to it. DKMS takes i915 from Debian's own =linux-source= package at build ti
 copy in this repository, so the module is Debian's i915 of the same kernel plus the patch.
 
 - =dkms.conf= :: builds =i915.ko= and =kvmgt.ko= (i915's GVT module, built from the same tree with
-  the same structures) into =updates/dkms=, which modprobe prefers over the stock ones.
+  the same structures) into =updates/dkms=, which modprobe prefers over the stock ones. A kernel
+  whose =linux-source= of the same Debian version is not installed counts as not applicable (DKMS's
+  exit 77): no build and no error, so a kernel upgrade never fails over it; the stock i915 is used
+  there until the source arrives.
 - =prepare-source.sh= :: the DKMS pre-build step: unpacks =drivers/gpu/drm/i915= from
-  =/usr/src/linux-source-7.2.tar.xz= and applies the i915 part of upstream's patch and =patches/=.
-  It refuses when =linux-source= is not the same Debian version as the kernel's headers, so no
-  mismatched i915 is ever built; the stock i915 stays in use then.
+  =/usr/src/linux-source-7.2.tar.xz= and applies the i915 part of upstream's patch and =patches/=,
+  checking the version match once more.
 - =upstream/= :: upstream's repository as a git submodule, at its commit =a350d0e= (2026-03-28).
   Its files state no license, beyond the two files the patch adds (MIT), so they are not copied
   into this repository: clone with =--recurse-submodules=, or =git submodule update --init=.
@@ -33,30 +35,28 @@ copy in this repository, so the module is Debian's i915 of the same kernel plus 
 - =patches/0002-module-firmware.patch= :: declares the firmware file with =MODULE_FIRMWARE=, so that
   =update-initramfs= copies it into the initramfs next to i915.
 - =upstream/gen_panel_prop.py= :: upstream's generator of =intel_legacy_panel_data.bin=, the panel
-  values the driver loads.
-- =test/build.sh= :: builds and installs the module through DKMS in a Debian 14 container (Podman),
-  with the same headers, compiler and dkms as the laptop; output in =test/build.log=.
+  values the driver loads; run when the package is built.
+- =debian/= :: the =i915-legacy-oled-dkms= package. It depends on =dkms=, =linux-source= and
+  =linux-headers-amd64=; installs the DKMS source, the firmware file and
+  =/usr/lib/modprobe.d/i915-legacy-oled.conf= (~options i915 enable_dpcd_backlight=99~, what
+  upstream's kernel parameter does, without touching the boot loader); builds the module for every
+  kernel with headers and refreshes their initramfs. A trigger on =/usr/src= builds it for any
+  kernel still without it whenever a package installs there, such as a newer =linux-source= that apt
+  unpacked after the kernel.
+- =build-deb.sh= :: builds the package in a Debian 14 container (Podman) into =dist/=.
+- =test/build.sh= :: builds the package and in a Debian 14 container with the laptop's kernel
+  installs it, makes a kernel come before its =linux-source= and lets the trigger build it, and
+  removes it; checking modprobe's choice of i915 and the initramfs each time. Output in
+  =test/build.log=.
 
 * Install on the laptop
 
-As root, in a checkout of this repository with its submodule:
+Build the package here (=./build-deb.sh=, in a checkout with its submodule), copy
+=dist/i915-legacy-oled-dkms_0.1_all.deb= over and, as root:
 
 #+begin_src sh
-apt install dkms linux-headers-amd64 linux-source openssl
-mkdir -p /usr/src/i915-legacy-oled-0.1
-cp -r --parents dkms.conf prepare-source.sh patches upstream/linux-legacy-oled-brightness.patch \
-  /usr/src/i915-legacy-oled-0.1/
-dkms install i915-legacy-oled/0.1
-
-python3 upstream/gen_panel_prop.py
-install -m 644 intel_legacy_panel_data.bin /lib/firmware/
-
-echo 'options i915 enable_dpcd_backlight=99' > /etc/modprobe.d/i915-legacy-oled.conf
-update-initramfs -u
+apt install ./i915-legacy-oled-dkms_0.1_all.deb
 #+end_src
-
-The =options= line does what upstream's kernel parameter ~i915.enable_dpcd_backlight=99~ does,
-without editing the boot loader; initramfs-tools copies it into the initramfs.
 
 With Secure Boot on (=mokutil --sb-state=), the kernel loads the module only once DKMS's key is
 enrolled: =mokutil --import /var/lib/dkms/mok.pub=, choose a one-time password, and confirm it in
@@ -66,32 +66,17 @@ firmware's framebuffer.
 After a reboot:
 
 #+begin_src sh
-modinfo -n i915                          # .../updates/dkms/i915.ko
+modinfo -n i915                          # .../updates/dkms/i915.ko.xz
 dmesg | grep -iE 'legacy|backlight'
 ls /sys/class/backlight/                 # intel_backlight; its brightness should now work
 #+end_src
 
-* Kernel updates
+=dkms status= shows which kernels have the module. =apt remove i915-legacy-oled-dkms= goes back to
+the stock i915, initramfs included.
 
-=linux-headers-amd64= and =linux-source= follow Debian's kernel, and DKMS builds the module for each
-new kernel when its headers are installed. If apt unpacks the new headers before the new
-=linux-source=, that build is refused as a version mismatch and the new kernel boots with the stock
-i915 (no brightness control, display fine). Then build it once more and refresh the initramfs:
-
-#+begin_src sh
-dkms autoinstall -k <new version>
-update-initramfs -u -k <new version>
-#+end_src
-
-=dkms status= shows which kernels have it.
-
-* Remove
-
-#+begin_src sh
-dkms remove i915-legacy-oled/0.1 --all
-rm -r /usr/src/i915-legacy-oled-0.1 /etc/modprobe.d/i915-legacy-oled.conf /lib/firmware/intel_legacy_panel_data.bin
-update-initramfs -u -k all
-#+end_src
+A real build failure on a future kernel (the patch no longer fitting Debian's i915) still fails that
+kernel's installation, as with any DKMS package; =apt remove i915-legacy-oled-dkms= then lets it
+through.
 
 * Known issues
 
@@ -104,5 +89,5 @@ do is unknown.
 test/build.sh [kernel version]
 #+end_src
 
-Needs Podman. The image's apt goes through the apt-cacher-ng in =BL_APT_PROXY= (default
+Needs Podman. The images' apt goes through the apt-cacher-ng in =BL_APT_PROXY= (default
 =http://interval.jazz:3142=; empty for none).

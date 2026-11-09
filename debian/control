@@ -1,0 +1,16 @@
+Source: i915-legacy-oled
+Section: kernel
+Priority: optional
+Maintainer: Johannes Dahl <muusik@gmail.com>
+Build-Depends: debhelper-compat (= 13), dh-sequence-dkms, python3
+Standards-Version: 4.7.0
+Rules-Requires-Root: no
+
+Package: i915-legacy-oled-dkms
+Architecture: all
+Depends: ${misc:Depends}, dkms, linux-source, linux-headers-amd64, patch, xz-utils, openssl
+Description: i915 with brightness control for legacy OLED panels (DKMS)
+ Rebuilds Debian's i915 with Chris Xiong's reverse engineered brightness
+ control for the OLED panel of the ThinkPad X1 Yoga 1st and 2nd gen, from
+ the linux-source package of each installed kernel's own version. Ships the
+ panel data firmware and sets i915.enable_dpcd_backlight=99.

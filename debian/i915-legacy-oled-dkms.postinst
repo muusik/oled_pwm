@@ -1,0 +1,54 @@
+#!/bin/sh
+set -e
+
+NAME=i915-legacy-oled
+VERSION=$(sed -n 's/^PACKAGE_VERSION="\(.*\)"/\1/p' /usr/src/$NAME-*/dkms.conf | head -n 1)
+
+installed() {
+	dkms status -m "$NAME" -v "$VERSION" -k "$1" 2>/dev/null | grep -q ': installed'
+}
+
+# Kernels with headers: the ones DKMS can build for.
+kernels() {
+	for b in /lib/modules/*/build; do
+		[ -e "$b/Makefile" ] || continue
+		k=${b%/build}
+		echo "${k##*/}"
+	done
+}
+
+# Build where the module is missing (DKMS's own postinst does only the
+# running and the newest kernel; a kernel can also come before its
+# linux-source), and refresh the initramfs where it is new, or everywhere
+# with "all": the module and its firmware go into it, so the panel gets them
+# as early as i915 loads. A kernel without its linux-source is skipped by
+# dkms.conf (exit 77), never an error here.
+build_missing() {
+	for k in $(kernels); do
+		if installed "$k"; then
+			[ "$1" = all ] || continue
+		else
+			dkms install -m "$NAME" -v "$VERSION" -k "$k" || true
+			installed "$k" || continue
+			echo "$NAME: built for $k"
+		fi
+		update-initramfs -u -k "$k"
+	done
+}
+
+case "$1" in
+triggered)
+	build_missing new
+	exit 0
+	;;
+esac
+
+#DEBHELPER#
+
+case "$1" in
+configure)
+	build_missing all
+	;;
+esac
+
+exit 0

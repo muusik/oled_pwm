@@ -1,0 +1,10 @@
+# Debian 14 with what building the .deb needs (debian/control Build-Depends).
+FROM docker.io/library/debian:forky
+# apt-cacher-ng as build secret apt_proxy, as in test/Containerfile.
+RUN --mount=type=secret,id=apt_proxy \
+    p=$(cat /run/secrets/apt_proxy 2>/dev/null || true) \
+ && o=${p:+"-o Acquire::http::Proxy=$p -o Acquire::https::Proxy=DIRECT"} \
+ && apt-get $o update \
+ && apt-get $o install -y --no-install-recommends \
+      build-essential dpkg-dev debhelper dh-dkms python3 \
+ && rm -rf /var/lib/apt/lists/*

@@ -1,6 +1,7 @@
 # Debian 14 with what the laptop needs to build the module through DKMS:
 # the running kernel's headers, the matching linux-source and dkms itself.
-# The kernel image too, so that modprobe's choice of i915 can be checked.
+# The kernel image and initramfs-tools too, so that modprobe's choice of i915
+# and the initramfs can be checked.
 FROM docker.io/library/debian:forky
 ARG KVER=7.2.15+deb14-amd64
 # The apt-cacher-ng (test/build.sh: BL_APT_PROXY) comes as the build secret
@@ -13,5 +14,5 @@ RUN --mount=type=secret,id=apt_proxy \
  && apt-get $o update \
  && apt-get $o install -y --no-install-recommends \
       dkms linux-headers-${KVER} linux-source-7.2 patch xz-utils python3 kmod openssl \
-      linux-image-${KVER} \
+      linux-image-${KVER} initramfs-tools linux-source linux-headers-amd64 \
  && rm -rf /var/lib/apt/lists/*

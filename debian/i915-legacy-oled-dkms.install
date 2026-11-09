@@ -1,0 +1,5 @@
+prepare-source.sh usr/src/i915-legacy-oled-0.1/
+patches usr/src/i915-legacy-oled-0.1/
+upstream/linux-legacy-oled-brightness.patch usr/src/i915-legacy-oled-0.1/upstream/
+intel_legacy_panel_data.bin usr/lib/firmware/
+modprobe.d/i915-legacy-oled.conf usr/lib/modprobe.d/

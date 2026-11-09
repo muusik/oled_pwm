@@ -1,0 +1,3 @@
+# A new linux-source (or kernel headers) can make the module buildable for
+# a kernel that was installed without it.
+interest-noawait /usr/src
