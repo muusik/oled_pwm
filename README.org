@@ -12,6 +12,8 @@ file. This repository packages it for DKMS. The panel firmware values are the sa
 generations: the =PanelDriver.inf= of Lenovo's Gen 1 package (=n1fdl04w=) and Gen 2 package
 (=n1ndp03w=) are byte-identical. The tables that live in the driver binary itself (IRC, SP) could
 not be compared that way; the upstream README gives its instructions for "1st gen / 2nd gen".
+Confirmed on an X1 Yoga 2nd gen with Debian 14 and 7.2.15+deb14-amd64 (2026-11-09): brightness
+control works from GNOME with the package installed.
 
 * How it works
 
