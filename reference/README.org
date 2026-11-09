@@ -1,0 +1,22 @@
+#+TITLE: Reference materials
+
+Saved copies of pages that automated clients (agents, curl) cannot reach: freedesktop's Bugzilla
+answers them with 403 and its GitLab with a bot check. Saved from a browser on 2026-11-09.
+
+- =fdo-bug-97883.html= ::
+  [[https://bugs.freedesktop.org/show_bug.cgi?id=97883][freedesktop bug 97883]], "[i915]
+  intel_backlight does not function - Lenovo X1 Yoga OLED" (2016-2019). Logs, Jani Nikula's
+  "proprietary sauce" assessment, Niklas Kielblock's analysis of Lenovo's Windows driver (eDP AUX,
+  gamma, ELVSS), a DPCD dump of an X1 Yoga 2nd gen OLED (comment 30; sink OUI =00 1c f8=),
+  icc-brightness. Moved to GitLab in 2019.
+- =drm-i915-kernel-issue-28.html= ::
+  [[https://gitlab.freedesktop.org/drm/i915/kernel/-/work_items/28][drm/i915/kernel#28]], the same
+  bug on GitLab (2019 on). Jani Nikula pointing to Intel's 2019 patch, which turned out to be for a
+  2019 panel; Niklas Kielblock on the Parade DP699 TCON and the older Samsung AMOLED protocol; Chris
+  Xiong's patch (2025), his statement that X1 Yoga 1st and 2nd gen use the same panel with identical
+  driver values, his low-brightness instability note, and the invitation to submit it to
+  intel-gfx/intel-xe.
+
+Intel's 2019 patch thread itself ("drm/i915: customize DPCD brightness control for specific panel",
+Lee Shawn C) is not kept here: patchwork's API serves it with its replies, e.g.
+https://patchwork.kernel.org/api/1.3/patches/11180699/ and its =comments/=.
