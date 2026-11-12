@@ -8,7 +8,13 @@ Comment: Upstream's repository (at a350d0e, 2026-03-28) has no license file
 
 Files: *
 Copyright: 2026 Johannes Dahl <muusik@gmail.com>
-License: none-chosen
+License: MIT
+
+Files: reference/*.html
+Copyright: their sites and authors
+License: none-stated
+Comment: Saved copies of web pages (bug reports, forum threads, a Lenovo
+ support note), kept for reference. Not in the binary package.
 
 Files: upstream/linux-legacy-oled-brightness.patch
 Copyright: 2025-2026 Chris Xiong
@@ -25,7 +31,7 @@ Comment: Only its i915 part is applied, not its hunk for
 
 Files: patches/0002-module-firmware.patch
 Copyright: 2026 Johannes Dahl <muusik@gmail.com>
-License: none-chosen
+License: MIT
 Comment: Changes intel_dp_legacy_oled_brightness.c, which is MIT (above).
 
 Files: upstream/gen_panel_prop.py
@@ -60,6 +66,3 @@ License: none-stated
  The author has not stated a license for this work. No permission to
  copy, modify or redistribute it is granted beyond what applicable law
  allows without one.
-
-License: none-chosen
- No license has been chosen for these files yet.

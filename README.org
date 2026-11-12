@@ -140,3 +140,10 @@ test/build.sh [kernel version]
 
 Needs Podman. With =BL_APT_PROXY= set to an apt-cacher-ng (=http://host:3142=), the images' apt goes
 through it; without it, straight to Debian's mirrors. =build-deb.sh= takes it too.
+
+* License
+
+This repository's code and documentation are under the MIT license (=LICENSE=). Not covered: the
+submodule =upstream/= (Chris Xiong's; no license stated beyond the two files its patch adds, which
+are MIT) and the saved web pages =reference/*.html= (their sites' and authors'). =debian/copyright=
+has the details per file.
