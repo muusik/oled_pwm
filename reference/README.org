@@ -25,6 +25,13 @@ with JavaScript from an API that refuses plain requests. Saved from a browser on
   warmth and with months of rest, and his explanation: the conductive adhesive bonding the panel's
   edge contacts, aged by humidity (messages 7 and 10); josserpse on five warranty replacements
   (messages 8-9); a third owner confirming the cold and rest pattern (message 11).
+- =lenovo-ht506966.html= ::
+  [[https://support.lenovo.com/il/en/solutions/HT506966][Lenovo support HT506966]], "Screen flicker
+  on ThinkPad X1 Yoga 1st and 2nd Gen" (2018, modified 2026). Lenovo's only word on it: the OLED
+  screen may flicker at brightness 0 under Windows 10; raise the brightness or disable panel self
+  refresh in the Intel graphics control panel, "No hardware replacement is required". Saved logged
+  in; the account menu (email, registered products and serials), a session id and the IP location
+  banner were removed from the copy.
 
 Intel's 2019 patch thread itself ("drm/i915: customize DPCD brightness control for specific panel",
 Lee Shawn C) is not kept here: patchwork's API serves it with its replies, e.g.
