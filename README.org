@@ -90,6 +90,21 @@ Windows; it shows on a factory-fitted 2nd gen too (2026-11-09), though that pane
 failing (replaced several times under warranty, flickering among the symptoms). What most of the
 panel's registers do is unknown.
 
+The panel itself degrades, and no driver can fix that. Owners of the X1 Yoga 2nd gen report the same
+course
+([[https://forums.lenovo.com/t5/ThinkPad-X-Series-Laptops/Yoga-X1-OLED-Gen-2-OLED-screen-failure-support-request/m-p/5124686][Lenovo Community thread]],
+saved in =reference/=): flickering and banding that start in cool air (below about 17 °C) and get
+worse within hours, first at low brightness and then higher up; the panel works again for minutes
+when warmed, and for weeks or months after resting unused; replacement panels, original Samsung
+parts included, fail the same way, some within months. The explanation given there, by an owner who
+worked in thin-film solar panels, is the bond between the panel glass and its flex cable or driver
+chip: the contacts there are not soldered but glued with an anisotropic conductive film, an adhesive
+with metal-coated particles that connect a pad only while the adhesive keeps them pressed. Aged by
+humidity and temperature cycles, the adhesive holds them less tightly, cold shrinks it further, and
+contacts turn intermittent or resistive: bands from signal lines, and flicker from the power feeds,
+which on an OLED carry the whole screen's current. Warmth presses the particles again; reflowing
+does nothing, there is no solder. This fits the symptoms but is not confirmed for this panel.
+
 History: Intel's 2019 patch "drm/i915: customize DPCD brightness control for specific panel" (Lee
 Shawn C, never merged) was once pointed to on bug 97883 / #28 as a fix for this panel, but it
 handles a 2019 Samsung panel through the registers i915 now supports as the Intel HDR backlight

@@ -1,7 +1,9 @@
 #+TITLE: Reference materials
 
 Saved copies of pages that automated clients (agents, curl) cannot reach: freedesktop's Bugzilla
-answers them with 403 and its GitLab with a bot check. Saved from a browser on 2026-11-09.
+answers them with 403 and its GitLab with a bot check, and Lenovo's community forum builds its pages
+with JavaScript from an API that refuses plain requests. Saved from a browser on 2026-11-09 and
+2026-11-12.
 
 - =fdo-bug-97883.html= ::
   [[https://bugs.freedesktop.org/show_bug.cgi?id=97883][freedesktop bug 97883]], "[i915]
@@ -16,6 +18,13 @@ answers them with 403 and its GitLab with a bot check. Saved from a browser on 2
   Xiong's patch (2025), his statement that X1 Yoga 1st and 2nd gen use the same panel with identical
   driver values, his low-brightness instability note, and the invitation to submit it to
   intel-gfx/intel-xe.
+- =lenovo-5124686-p1.html=, =lenovo-5124686-p2.html= ::
+  [[https://forums.lenovo.com/t5/ThinkPad-X-Series-Laptops/Yoga-X1-OLED-Gen-2-OLED-screen-failure-support-request/m-p/5124686][Lenovo Community]],
+  "Yoga X1 OLED Gen 2 OLED screen failure support request" (2022-2023), pages 1 and 2.
+  ThomasIntello's account of the panel failing in the cold (below about 17 °C), recovering with
+  warmth and with months of rest, and his explanation: the conductive adhesive bonding the panel's
+  edge contacts, aged by humidity (messages 7 and 10); josserpse on five warranty replacements
+  (messages 8-9); a third owner confirming the cold and rest pattern (message 11).
 
 Intel's 2019 patch thread itself ("drm/i915: customize DPCD brightness control for specific panel",
 Lee Shawn C) is not kept here: patchwork's API serves it with its replies, e.g.
