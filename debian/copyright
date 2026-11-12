@@ -1,14 +1,28 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: linux-legacy-oled-brightness
 Upstream-Contact: Chris Xiong <chris@pineapple.cat>
-Source: https://git.chrisoft.org/git/linux-legacy-oled-brightness.git
-Comment: Upstream's repository (at a350d0e, 2026-03-28) has no license file
+Source: https://github.com/muusik/oled_pwm_extract_panel_prop
+Comment: The submodule upstream/ is a fork of Chris Xiong's repository,
+ https://git.chrisoft.org/git/linux-legacy-oled-brightness.git, at a350d0e
+ (2026-03-28), plus extract_panel_prop.py and download_panel_prop.sh.
+ Upstream's repository has no license file
  and its README states no license; only the two new kernel files in its
  patch carry license headers.
 
 Files: *
 Copyright: 2026 Johannes Dahl <muusik@gmail.com>
 License: MIT
+
+Files: upstream/*
+Copyright: 2025-2026 Chris Xiong
+License: none-stated
+Comment: Upstream's files other than those below. Not in the binary package.
+
+Files: upstream/extract_panel_prop.py upstream/download_panel_prop.sh
+Copyright: 2026 Johannes Dahl <muusik@gmail.com>
+License: MIT
+Comment: The fork's additions; they read the panel values from the driver
+ package the user supplies or downloads. Not used by this package yet.
 
 Files: reference/*.html
 Copyright: their sites and authors

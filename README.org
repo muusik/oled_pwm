@@ -8,10 +8,12 @@ The driver is Chris Xiong's reverse engineering of Lenovo's Windows "Intel OLED 
 ([[https://chrisoft.org/blog/post/2025-04-28.html][blog post]],
 [[https://git.chrisoft.org/git/linux-legacy-oled-brightness.git][repository]]): a patch to i915 that
 drives the panel's brightness over DP AUX with the values of that driver, loaded from a firmware
-file. This repository packages it for DKMS. The panel firmware values are the same for both
-generations: the =PanelDriver.inf= of Lenovo's Gen 1 package (=n1fdl04w=) and Gen 2 package
-(=n1ndp03w=) are byte-identical. The tables that live in the driver binary itself (IRC, SP) could
-not be compared that way, but upstream's author states on
+file. This repository packages it for DKMS, through a fork of that repository,
+[[https://github.com/muusik/oled_pwm_extract_panel_prop][oled_pwm_extract_panel_prop]], which adds a
+generator of the panel values from Lenovo's driver package (offered back to upstream). The panel
+firmware values are the same for both generations: the =PanelDriver.inf= of Lenovo's Gen 1 package
+(=n1fdl04w=) and Gen 2 package (=n1ndp03w=) are byte-identical. The tables that live in the driver
+binary itself (IRC, SP) could not be compared that way, but upstream's author states on
 [[https://gitlab.freedesktop.org/drm/i915/kernel/-/work_items/28][drm/i915/kernel#28]] that both
 generations use "the same panel (down to the exact same part number), and the numbers in their
 drivers are identical". Confirmed on an X1 Yoga 2nd gen with Debian 14 and 7.2.15+deb14-amd64
@@ -31,9 +33,13 @@ copy in this repository, so the module is Debian's i915 of the same kernel plus 
 - =prepare-source.sh= :: the DKMS pre-build step: unpacks =drivers/gpu/drm/i915= from
   =/usr/src/linux-source-7.2.tar.xz= and applies the i915 part of upstream's patch and =patches/=,
   checking the version match once more.
-- =upstream/= :: upstream's repository as a git submodule, at its commit =a350d0e= (2026-03-28).
-  Its files state no license, beyond the two files the patch adds (MIT), so they are not copied
-  into this repository: clone with =--recurse-submodules=, or =git submodule update --init=.
+- =upstream/= :: the fork
+  [[https://github.com/muusik/oled_pwm_extract_panel_prop][oled_pwm_extract_panel_prop]] as a git
+  submodule: upstream at its commit =a350d0e= (2026-03-28) plus =extract_panel_prop.py= and
+  =download_panel_prop.sh= (MIT), which generate the panel values from Lenovo's driver package
+  instead of numbers kept in a script; the package does not use them yet. Upstream's files state no
+  license, beyond the two files the patch adds (MIT), so they are not copied into this repository:
+  clone with =--recurse-submodules=, or =git submodule update --init=.
 - =upstream/linux-legacy-oled-brightness.patch= :: upstream's patch; its hunk for the Xe driver is
   not applied.
 - =patches/0002-module-firmware.patch= :: declares the firmware file with =MODULE_FIRMWARE=, so that
@@ -144,6 +150,6 @@ through it; without it, straight to Debian's mirrors. =build-deb.sh= takes it to
 * License
 
 This repository's code and documentation are under the MIT license (=LICENSE=). Not covered: the
-submodule =upstream/= (Chris Xiong's; no license stated beyond the two files its patch adds, which
-are MIT) and the saved web pages =reference/*.html= (their sites' and authors'). =debian/copyright=
-has the details per file.
+submodule =upstream/= (Chris Xiong's files: no license stated beyond the two files its patch adds,
+which are MIT; the fork's additions are MIT) and the saved web pages =reference/*.html= (their
+sites' and authors'). =debian/copyright= has the details per file.
