@@ -104,6 +104,28 @@ humidity and temperature cycles, the adhesive holds them less tightly, cold shri
 contacts turn intermittent or resistive: bands from signal lines, and flicker from the power feeds,
 which on an OLED carry the whole screen's current. Warmth presses the particles again; reflowing
 does nothing, there is no solder. This fits the symptoms but is not confirmed for this panel.
+Studies of these films under damp heat find the same direction: the adhesive swells, water creeps
+along the interface, contact resistance rises and joints open. None was found on cold alone.
+Lenovo's only support note on the flicker (HT506966, 2018, saved in =reference/=) predates most
+failures: it blames panel self refresh at brightness 0 and says no hardware replacement is needed.
+
+No one seems to have opened the panel itself and looked at its bonds (as of 2026-11). Chris Xiong's
+[[https://chrisoft.org/blog/post/2025-04-16.html][refurbishing post]] gives the OLED parts (display
+assembly 01AW977, driver board 00NY439, cable 01AW979) but nothing inside the panel, and iFixit's
+display teardown does not say it is the OLED variant. Such a panel usually has two bonds of this
+kind, either of which could be the failing one: the flex cable on the glass edge, coarse enough that
+TV and phone repair shops rebond it routinely, and the driver chip on the glass, several times finer
+and beyond repair outside a factory.
+
+Replacing the adhesive is possible in principle and a long shot in practice. Re-pressing the old
+bond with a heated flat tool (around 120 °C is suggested on repair forums) is cheap, but the cured
+epoxy only partly regains its grip, and OLED material and its thin seal tolerate little heat. A full
+rebond means peeling the flex, cleaning the pads, laying new film, aligning under a microscope and
+hot-pressing at around 180-200 °C; bonding machines cost about $500-5500, and a failed bond on a
+panel no longer made is final. Replacement panels (about $100) carry adhesive of the same age.
+Before any of this, check it is the bond: while the screen flickers, press gently along the edge
+where the flex leaves the glass, and warm only that edge, then only the middle. A change from the
+edge alone points at the bond; one only from warming the whole panel points elsewhere.
 
 History: Intel's 2019 patch "drm/i915: customize DPCD brightness control for specific panel" (Lee
 Shawn C, never merged) was once pointed to on bug 97883 / #28 as a fix for this panel, but it
