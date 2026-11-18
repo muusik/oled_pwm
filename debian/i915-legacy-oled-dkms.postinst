@@ -47,6 +47,13 @@ esac
 
 case "$1" in
 configure)
+	# The panel data is downloaded from Lenovo, not shipped (debian/copyright).
+	# Without it i915 still loads, with no brightness control, so a failed
+	# download does not fail the installation.
+	if [ ! -f /usr/lib/firmware/intel_legacy_panel_data.bin ]; then
+		i915-legacy-oled-fetch --no-initramfs ||
+			echo "$NAME: could not generate the panel data; run i915-legacy-oled-fetch as root to retry" >&2
+	fi
 	build_missing all
 	;;
 esac

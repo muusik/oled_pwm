@@ -1,0 +1,32 @@
+#!/bin/sh
+# Download Lenovo's OLED panel driver package (n1ndp03w), check its SHA-256
+# and generate /usr/lib/firmware/intel_legacy_panel_data.bin from it, the
+# panel values the driver loads; then refresh the initramfs of every kernel,
+# so that i915 finds the file there too. The package runs this when it is
+# installed; run it as root to retry after a failed download.
+#
+# Usage: i915-legacy-oled-fetch [--no-initramfs]
+# curl honours https_proxy for the download.
+set -eu
+
+share=/usr/share/i915-legacy-oled
+fw=/usr/lib/firmware/intel_legacy_panel_data.bin
+
+initramfs=yes
+[ "${1:-}" = --no-initramfs ] && initramfs=no
+
+# Into a temporary file first: a failed download leaves no partial
+# firmware behind. The directory is missing where no firmware package is
+# installed.
+mkdir -p "${fw%/*}"
+tmp=$(mktemp "$fw.XXXXXX")
+trap 'rm -f "$tmp"' EXIT
+sh "$share/download_panel_prop.sh" -o "$tmp"
+chmod 644 "$tmp"
+mv "$tmp" "$fw"
+trap - EXIT
+echo "i915-legacy-oled: wrote $fw"
+
+if [ "$initramfs" = yes ]; then
+	update-initramfs -u -k all
+fi

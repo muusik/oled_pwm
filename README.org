@@ -39,29 +39,36 @@ copy in this repository, so the module is Debian's i915 of the same kernel plus 
   [[https://github.com/muusik/oled_pwm_extract_panel_prop][oled_pwm_extract_panel_prop]] as a git
   submodule: upstream at its commit =a350d0e= (2026-03-28) plus =extract_panel_prop.py= and
   =download_panel_prop.sh= (MIT), which generate the panel values from Lenovo's driver package
-  instead of numbers kept in a script; the package does not use them yet. Upstream's files state no
-  license, beyond the two files the patch adds (MIT), so they are not copied into this repository:
-  clone with =--recurse-submodules=, or =git submodule update --init=.
+  instead of numbers kept in a script. Upstream's files state no license, beyond the two files the
+  patch adds (MIT), so they are not copied into this repository: clone with =--recurse-submodules=,
+  or =git submodule update --init=.
 - =upstream/linux-legacy-oled-brightness.patch= :: upstream's patch; its hunk for the Xe driver is
   not applied.
 - =patches/0002-module-firmware.patch= :: declares the firmware file with =MODULE_FIRMWARE=, so that
   =update-initramfs= copies it into the initramfs next to i915.
-- =upstream/gen_panel_prop.py= :: upstream's generator of =intel_legacy_panel_data.bin=, the panel
-  values the driver loads; run when the package is built.
+- =i915-legacy-oled-fetch= :: generates =/usr/lib/firmware/intel_legacy_panel_data.bin=, the panel
+  values the driver loads, on the laptop when the package is installed:
+  =upstream/download_panel_prop.sh= downloads Lenovo's driver package =n1ndp03w.exe=, checks its
+  SHA-256 and runs =upstream/extract_panel_prop.py= on it, whose output is byte for byte that of
+  upstream's =gen_panel_prop.py= (which keeps the values in the script and is not used). The values
+  come from Lenovo's driver, which carries no license to redistribute it, so the package does not
+  ship them but generates them on the machine, as Debian's contrib installer packages
+  (=firmware-b43-installer=) do with such firmware. Run it as root to retry after a failed download;
+  it refreshes the initramfs of every kernel.
 - =debian/= :: the =i915-legacy-oled-dkms= package. It depends on =dkms=, =linux-source= and
-  =linux-headers-amd64=; installs the DKMS source, the firmware file and
-  =/usr/lib/modprobe.d/i915-legacy-oled.conf= (~options i915 enable_dpcd_backlight=99~, what
-  upstream's kernel parameter does, without touching the boot loader); builds the module for every
-  kernel with headers and refreshes their initramfs. A trigger on =/usr/src= builds it for any
-  kernel still without it whenever a package installs there, such as a newer =linux-source= that apt
-  unpacked after the kernel.
+  =linux-headers-amd64=, and on =innoextract=, =python3= and =curl= for the panel data; installs the
+  DKMS source, the panel data scripts and =/usr/lib/modprobe.d/i915-legacy-oled.conf=
+  (~options i915 enable_dpcd_backlight=99~, what upstream's kernel parameter does, without touching
+  the boot loader); builds the module for every kernel with headers and refreshes their initramfs. A
+  trigger on =/usr/src= builds it for any kernel still without it whenever a package installs there,
+  such as a newer =linux-source= that apt unpacked after the kernel.
 - =build-deb.sh= :: builds the package into =dist/= with the machine's own Debian tools (the
   =Build-Depends= of =debian/control=, on Debian 14). In a bread_ladder session, those of its
   =debian-forky= toolset (=.bl-tools=).
 - =test/build.sh= :: builds the package and in a Debian 14 container with the laptop's kernel
-  installs it, makes a kernel come before its =linux-source= and lets the trigger build it, and
-  removes it; checking modprobe's choice of i915 and the initramfs each time. Output in
-  =test/build.log=.
+  installs it, makes the panel data download fail and retries it, makes a kernel come before its
+  =linux-source= and lets the trigger build it, and removes it; checking modprobe's choice of i915
+  and the initramfs each time. Output in =test/build.log=.
 
 * Install on the laptop
 
@@ -71,6 +78,10 @@ Build the package here (=./build-deb.sh=, in a checkout with its submodule), cop
 #+begin_src sh
 apt install ./i915-legacy-oled-dkms_0.1_all.deb
 #+end_src
+
+The installation downloads Lenovo's driver package (about 330 KB, through =https_proxy= if set).
+Without the network it still installs, without the panel data and so without brightness control;
+=i915-legacy-oled-fetch= then retries.
 
 With Secure Boot on (=mokutil --sb-state=), the kernel loads the module only once DKMS's key is
 enrolled: =mokutil --import /var/lib/dkms/mok.pub=, choose a one-time password, and confirm it in

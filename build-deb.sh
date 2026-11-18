@@ -5,8 +5,8 @@ set -eu
 
 repo=$(cd "$(dirname "$0")" && pwd)
 
-# Upstream's patch and panel data generator come from the submodule upstream/.
-[ -f "$repo/upstream/gen_panel_prop.py" ] || {
+# Upstream's patch and the panel data scripts come from the submodule upstream/.
+[ -f "$repo/upstream/download_panel_prop.sh" ] || {
 	echo "upstream/ is empty: git submodule update --init" >&2
 	exit 1
 }

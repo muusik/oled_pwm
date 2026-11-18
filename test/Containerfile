@@ -1,5 +1,6 @@
 # Debian 14 with what the laptop needs to build the module through DKMS:
-# the running kernel's headers, the matching linux-source and dkms itself.
+# the running kernel's headers, the matching linux-source and dkms itself,
+# and what generates the panel data at installation (innoextract, curl).
 # The kernel image and initramfs-tools too, so that modprobe's choice of i915
 # and the initramfs can be checked.
 FROM docker.io/library/debian:forky
@@ -16,4 +17,5 @@ RUN --mount=type=secret,id=apt_proxy \
  && apt-get $o install -y --no-install-recommends \
       dkms linux-headers-${KVER} linux-source-${SERIES} patch xz-utils python3 kmod openssl \
       linux-image-${KVER} initramfs-tools linux-source linux-headers-amd64 \
+      innoextract curl ca-certificates \
  && rm -rf /var/lib/apt/lists/*

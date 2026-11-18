@@ -32,6 +32,10 @@ podman run --rm -v "$repo/dist:/dist:ro" -e KVER="$kver" -e SERIES="$series" -e 
 	mods() { modinfo -k "$KVER" -n i915 kvmgt; }
 	in_initrd() { lsinitramfs "$initrd" | grep -E "/i915/i915\.ko|/i915\.ko|intel_legacy_panel_data|i915-legacy-oled" || echo "(none)"; }
 	built() { dkms status -k "$KVER" | grep -q "i915-legacy-oled.*: installed"; }
+	# The panel data generated at installation: what upstream'"'"'s
+	# gen_panel_prop.py writes.
+	fw=/usr/lib/firmware/intel_legacy_panel_data.bin
+	fw_ok() { echo "c31bf01346f6271af7b26cf924431dde7afcc05ab639d8300d4372edc4d5d28d  $fw" | sha256sum -c -; }
 
 	# i915 in the initramfs, as plymouth puts it there: its firmware and
 	# options then have to be in it too.
@@ -46,16 +50,27 @@ podman run --rm -v "$repo/dist:/dist:ro" -e KVER="$kver" -e SERIES="$series" -e 
 	xz -dc "$(modinfo -k "$KVER" -n i915)" | strings |
 		grep -E "^(intel_dp_aux_legacy_[a-z_]+|firmware=intel_legacy_.*)$" | sort -u
 	modprobe -c | grep "enable_dpcd_backlight"
+	fw_ok
 	echo "-- in the initramfs"
 	in_initrd
 
-	echo "== 2. a kernel that comes before its linux-source"
+	echo "== 2. a failed download: installed anyway, then a retry"
+	rm "$fw"
+	https_proxy=http://127.0.0.1:9 dpkg-reconfigure -f noninteractive i915-legacy-oled-dkms
+	[ ! -e "$fw" ]
+	! ls /usr/lib/firmware/intel_legacy_panel_data.bin.* 2>/dev/null || exit 1
+	built
+	i915-legacy-oled-fetch
+	fw_ok
+	in_initrd
+
+	echo "== 3. a kernel that comes before its linux-source"
 	dkms remove i915-legacy-oled/0.1 -k "$KVER"
 	mv /usr/src/linux-source-$SERIES.tar.xz /root/
 	rc=0; /etc/kernel/postinst.d/dkms "$KVER" || rc=$?
 	echo "kernel hook exit status: $rc"
 	[ "$rc" = 0 ]
-	! built
+	! built || exit 1
 	echo "-- linux-source arrives: the trigger builds it"
 	rm /root/linux-source-$SERIES.tar.xz
 	$apt update -qq
@@ -64,11 +79,12 @@ podman run --rm -v "$repo/dist:/dist:ro" -e KVER="$kver" -e SERIES="$series" -e 
 	mods
 	in_initrd
 
-	echo "== 3. remove the package"
+	echo "== 4. remove the package"
 	$apt remove i915-legacy-oled-dkms
-	! built
+	! built || exit 1
 	modinfo -k "$KVER" -n i915
 	modprobe -c | grep "enable_dpcd_backlight" && exit 1
+	[ ! -e "$fw" ]
 	in_initrd
 	echo "== all steps passed"
 '

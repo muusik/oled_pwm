@@ -22,7 +22,11 @@ Files: upstream/extract_panel_prop.py upstream/download_panel_prop.sh
 Copyright: 2026 Johannes Dahl <muusik@gmail.com>
 License: MIT
 Comment: The fork's additions; they read the panel values from the driver
- package the user supplies or downloads. Not used by this package yet.
+ package the user supplies or downloads. In the binary package, in
+ /usr/share/i915-legacy-oled; i915-legacy-oled-fetch runs them at
+ installation. Their output, /usr/lib/firmware/intel_legacy_panel_data.bin,
+ is not in the binary package: it is generated on the user's machine from
+ Lenovo's driver package, which carries no license to redistribute it.
 
 Files: reference/*.html
 Copyright: their sites and authors
@@ -53,9 +57,8 @@ Copyright: 2025-2026 Chris Xiong
 License: none-stated
 Comment: The script carries no license header. Its tables are values from
  Lenovo's Windows "Intel OLED Panel Driver" for the ThinkPad X1 Yoga
- (PanelDriver.inf and PanelDriver.sys). The script itself is not in the
- binary package; its output is, as
- /usr/lib/firmware/intel_legacy_panel_data.bin.
+ (PanelDriver.inf and PanelDriver.sys). Neither the script nor its output
+ is in the binary package, nor used to build it.
 
 License: MIT
  Permission is hereby granted, free of charge, to any person obtaining a

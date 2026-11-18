@@ -5,6 +5,8 @@ set -e
 
 case "$1" in
 remove)
+	# The panel data was generated, not unpacked: dpkg does not remove it.
+	rm -f /usr/lib/firmware/intel_legacy_panel_data.bin
 	# The DKMS modules are gone (prerm): back to the stock i915 in the
 	# initramfs of every kernel that has one.
 	for f in /boot/initrd.img-*; do
