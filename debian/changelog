@@ -1,3 +1,12 @@
+i915-legacy-oled (0.2) unstable; urgency=medium
+
+  * Generate the panel data firmware at installation from Lenovo's driver
+    package (i915-legacy-oled-fetch) instead of shipping it; the package
+    is kept in /var/cache/i915-legacy-oled until purge.
+  * Build on Linux 7.3: add i915's Makefile object without a patch hunk.
+
+ -- Johannes Dahl <muusik@gmail.com>  Wed, 18 Nov 2026 07:46:22 +0000
+
 i915-legacy-oled (0.1) unstable; urgency=medium
 
   * DKMS package of the legacy OLED brightness patch (upstream a350d0e)

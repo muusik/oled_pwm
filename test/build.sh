@@ -9,7 +9,13 @@ set -o pipefail
 here=$(cd "$(dirname "$0")" && pwd)
 repo=$(dirname "$here")
 kver=${1:-7.3.4+deb14-amd64}
+# Lenovo's driver package, downloaded by the first run and given to the
+# package's cache in the container after that: the download is from Lenovo.
+cache=${XDG_CACHE_HOME:-$HOME/.cache}/oled_pwm
+mkdir -p "$cache"
 series=$(echo "$kver" | cut -d. -f1,2)
+# The package version, which is also the DKMS module's.
+ver=$(sed -n 's/^PACKAGE_VERSION="\(.*\)"/\1/p' "$repo/dkms.conf")
 image=localhost/oled_pwm-build
 
 # An apt-cacher-ng for the image's packages when BL_APT_PROXY names one
@@ -26,7 +32,7 @@ fi
 podman build -q -t "$image" --build-arg KVER="$kver" --build-arg SERIES="$series" \
 	$proxy_secret "$here" >/dev/null
 
-podman run --rm -v "$repo/dist:/dist:ro" -e KVER="$kver" -e SERIES="$series" -e P="${BL_APT_PROXY:-}" "$image" sh -euc '
+podman run --rm -v "$repo/dist:/dist:ro" -v "$cache:/cache" -e KVER="$kver" -e SERIES="$series" -e VER="$ver" -e P="${BL_APT_PROXY:-}" "$image" sh -euc '
 	apt="apt-get -y -q ${P:+-o Acquire::http::Proxy=$P -o Acquire::https::Proxy=DIRECT}"
 	initrd=/boot/initrd.img-$KVER
 	mods() { modinfo -k "$KVER" -n i915 kvmgt; }
@@ -37,12 +43,18 @@ podman run --rm -v "$repo/dist:/dist:ro" -e KVER="$kver" -e SERIES="$series" -e 
 	fw=/usr/lib/firmware/intel_legacy_panel_data.bin
 	fw_ok() { echo "c31bf01346f6271af7b26cf924431dde7afcc05ab639d8300d4372edc4d5d28d  $fw" | sha256sum -c -; }
 
+	pc=/var/cache/i915-legacy-oled
+	if [ -f /cache/n1ndp03w.exe ]; then
+		mkdir -p $pc
+		cp /cache/n1ndp03w.exe $pc/
+	fi
+
 	# i915 in the initramfs, as plymouth puts it there: its firmware and
 	# options then have to be in it too.
 	echo i915 >> /etc/initramfs-tools/modules
 
 	echo "== 1. install the package"
-	$apt install /dist/i915-legacy-oled-dkms_*_all.deb
+	$apt install /dist/i915-legacy-oled-dkms_${VER}_all.deb
 	built
 	mods
 	modinfo -k "$KVER" -F vermagic i915
@@ -51,21 +63,24 @@ podman run --rm -v "$repo/dist:/dist:ro" -e KVER="$kver" -e SERIES="$series" -e 
 		grep -E "^(intel_dp_aux_legacy_[a-z_]+|firmware=intel_legacy_.*)$" | sort -u
 	modprobe -c | grep "enable_dpcd_backlight"
 	fw_ok
+	[ -f /cache/n1ndp03w.exe ] || cp $pc/n1ndp03w.exe /cache/
 	echo "-- in the initramfs"
 	in_initrd
 
 	echo "== 2. a failed download: installed anyway, then a retry"
-	rm "$fw"
+	rm "$fw" $pc/n1ndp03w.exe
 	https_proxy=http://127.0.0.1:9 dpkg-reconfigure -f noninteractive i915-legacy-oled-dkms
 	[ ! -e "$fw" ]
 	! ls /usr/lib/firmware/intel_legacy_panel_data.bin.* 2>/dev/null || exit 1
 	built
+	echo "-- the cached package back"
+	cp /cache/n1ndp03w.exe $pc/
 	i915-legacy-oled-fetch
 	fw_ok
 	in_initrd
 
 	echo "== 3. a kernel that comes before its linux-source"
-	dkms remove i915-legacy-oled/0.1 -k "$KVER"
+	dkms remove i915-legacy-oled/$VER -k "$KVER"
 	mv /usr/src/linux-source-$SERIES.tar.xz /root/
 	rc=0; /etc/kernel/postinst.d/dkms "$KVER" || rc=$?
 	echo "kernel hook exit status: $rc"
@@ -86,6 +101,10 @@ podman run --rm -v "$repo/dist:/dist:ro" -e KVER="$kver" -e SERIES="$series" -e 
 	modprobe -c | grep "enable_dpcd_backlight" && exit 1
 	[ ! -e "$fw" ]
 	in_initrd
+	[ -f $pc/n1ndp03w.exe ]
+	echo "-- purge"
+	dpkg --purge i915-legacy-oled-dkms
+	[ ! -e $pc ]
 	echo "== all steps passed"
 '
 } 2>&1 | grep -vE "^debconf: |^(Get|Selecting|Preparing|Unpacking|Setting up|Processing)" | tee "$here/build.log"

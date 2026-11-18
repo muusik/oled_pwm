@@ -1,9 +1,13 @@
 #!/bin/sh
-# Download Lenovo's OLED panel driver package (n1ndp03w), check its SHA-256
-# and generate /usr/lib/firmware/intel_legacy_panel_data.bin from it, the
-# panel values the driver loads; then refresh the initramfs of every kernel,
-# so that i915 finds the file there too. The package runs this when it is
-# installed; run it as root to retry after a failed download.
+# Generate /usr/lib/firmware/intel_legacy_panel_data.bin, the panel values
+# the driver loads, from Lenovo's OLED panel driver package (n1ndp03w) with
+# extract_panel_prop.py; then refresh the initramfs of every kernel, so that
+# i915 finds the file there too. The package runs this when it is installed;
+# run it as root to retry after a failed download.
+#
+# The package is downloaded once and kept in /var/cache/i915-legacy-oled; it
+# is checked against its SHA-256 before every use, and downloaded again when
+# the check fails. URL and SHA-256 as in upstream/download_panel_prop.sh.
 #
 # Usage: i915-legacy-oled-fetch [--no-initramfs]
 # curl honours https_proxy for the download.
@@ -11,17 +15,38 @@ set -eu
 
 share=/usr/share/i915-legacy-oled
 fw=/usr/lib/firmware/intel_legacy_panel_data.bin
+cache=/var/cache/i915-legacy-oled
+pkg=n1ndp03w
+sum=fdf69a0708e50704f20098f95625834b23fa473e5406bfb3ce8b7e62ef44b8ce
+exe=$cache/$pkg.exe
 
 initramfs=yes
 [ "${1:-}" = --no-initramfs ] && initramfs=no
 
-# Into a temporary file first: a failed download leaves no partial
+checks_out() { echo "$sum  $exe" | sha256sum -c --quiet - >/dev/null 2>&1; }
+
+if ! checks_out; then
+	mkdir -p "$cache"
+	echo "Downloading https://download.lenovo.com/pccbbs/mobiles/$pkg.exe" >&2
+	curl -fsSL --retry 3 -o "$exe.part" "https://download.lenovo.com/pccbbs/mobiles/$pkg.exe" || {
+		rm -f "$exe.part"
+		exit 1
+	}
+	mv "$exe.part" "$exe"
+	checks_out || {
+		rm -f "$exe"
+		echo "$pkg.exe does not have the expected SHA-256; not using it" >&2
+		exit 1
+	}
+fi
+
+# Into a temporary file first: a failed extraction leaves no partial
 # firmware behind. The directory is missing where no firmware package is
 # installed.
 mkdir -p "${fw%/*}"
 tmp=$(mktemp "$fw.XXXXXX")
 trap 'rm -f "$tmp"' EXIT
-sh "$share/download_panel_prop.sh" -o "$tmp"
+python3 -I "$share/extract_panel_prop.py" -o "$tmp" "$exe"
 chmod 644 "$tmp"
 mv "$tmp" "$fw"
 trap - EXIT

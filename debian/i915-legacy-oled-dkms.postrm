@@ -15,6 +15,10 @@ remove)
 		[ -d "/lib/modules/$k" ] && update-initramfs -u -k "$k"
 	done
 	;;
+purge)
+	# Lenovo's driver package, kept by i915-legacy-oled-fetch.
+	rm -rf /var/cache/i915-legacy-oled
+	;;
 esac
 
 exit 0
