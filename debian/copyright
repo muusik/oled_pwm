@@ -4,7 +4,8 @@ Upstream-Contact: Chris Xiong <chris@pineapple.cat>
 Source: https://github.com/muusik/oled_pwm_extract_panel_prop
 Comment: The submodule upstream/ is a fork of Chris Xiong's repository,
  https://git.chrisoft.org/git/linux-legacy-oled-brightness.git, at a350d0e
- (2026-03-28), plus extract_panel_prop.py and download_panel_prop.sh.
+ (2026-03-28), plus extract_panel_prop.py, x86_64_decode.py and
+ download_panel_prop.sh.
  Upstream's repository has no license file
  and its README states no license; only the two new kernel files in its
  patch carry license headers.
@@ -18,14 +19,17 @@ Copyright: 2025-2026 Chris Xiong
 License: none-stated
 Comment: Upstream's files other than those below. Not in the binary package.
 
-Files: upstream/extract_panel_prop.py upstream/download_panel_prop.sh
+Files: upstream/extract_panel_prop.py upstream/x86_64_decode.py
+ upstream/download_panel_prop.sh
 Copyright: 2026 Johannes Dahl <muusik@gmail.com>
 License: MIT
 Comment: The fork's additions; they read the panel values from the driver
- package the user supplies or downloads. extract_panel_prop.py is in the
- binary package, in /usr/share/i915-legacy-oled; i915-legacy-oled-fetch runs
- it at installation on the driver package it downloads (with the URL and
- SHA-256 of download_panel_prop.sh, which is not shipped). Its output, /usr/lib/firmware/intel_legacy_panel_data.bin,
+ package the user supplies or downloads. extract_panel_prop.py and its
+ x86-64 decoder x86_64_decode.py are in the binary package, in
+ /usr/share/i915-legacy-oled; i915-legacy-oled-fetch runs the former at
+ installation on the driver package it downloads (with the URL and SHA-256
+ of download_panel_prop.sh, which is not shipped). Its output,
+ /usr/lib/firmware/intel_legacy_panel_data.bin,
  is not in the binary package: it is generated on the user's machine from
  Lenovo's driver package, which carries no license to redistribute it.
 

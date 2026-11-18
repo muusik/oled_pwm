@@ -37,11 +37,11 @@ copy in this repository, so the module is Debian's i915 of the same kernel plus 
   the object after =intel_dp_aux_backlight.o= itself.
 - =upstream/= :: the fork
   [[https://github.com/muusik/oled_pwm_extract_panel_prop][oled_pwm_extract_panel_prop]] as a git
-  submodule: upstream at its commit =a350d0e= (2026-03-28) plus =extract_panel_prop.py= and
-  =download_panel_prop.sh= (MIT), which generate the panel values from Lenovo's driver package
-  instead of numbers kept in a script. Upstream's files state no license, beyond the two files the
-  patch adds (MIT), so they are not copied into this repository: clone with =--recurse-submodules=,
-  or =git submodule update --init=.
+  submodule: upstream at its commit =a350d0e= (2026-03-28) plus =extract_panel_prop.py= (with its
+  x86-64 decoder =x86_64_decode.py=) and =download_panel_prop.sh= (MIT), which generate the panel
+  values from Lenovo's driver package instead of numbers kept in a script. Upstream's files state no
+  license, beyond the two files the patch adds (MIT), so they are not copied into this repository:
+  clone with =--recurse-submodules=, or =git submodule update --init=.
 - =upstream/linux-legacy-oled-brightness.patch= :: upstream's patch; its hunk for the Xe driver is
   not applied.
 - =patches/0002-module-firmware.patch= :: declares the firmware file with =MODULE_FIRMWARE=, so that
