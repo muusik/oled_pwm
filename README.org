@@ -31,8 +31,10 @@ copy in this repository, so the module is Debian's i915 of the same kernel plus 
   exit 77): no build and no error, so a kernel upgrade never fails over it; the stock i915 is used
   there until the source arrives.
 - =prepare-source.sh= :: the DKMS pre-build step: unpacks =drivers/gpu/drm/i915= from
-  =/usr/src/linux-source-7.2.tar.xz= and applies the i915 part of upstream's patch and =patches/=,
-  checking the version match once more.
+  =/usr/src/linux-source-<major.minor>.tar.xz= and applies the i915 part of upstream's patch and
+  =patches/=, checking the version match once more. Upstream's hunk for i915's =Makefile= is left
+  out, as its context changes between kernels (7.3 added =intel_dp_link_caps.o=): the script adds
+  the object after =intel_dp_aux_backlight.o= itself.
 - =upstream/= :: the fork
   [[https://github.com/muusik/oled_pwm_extract_panel_prop][oled_pwm_extract_panel_prop]] as a git
   submodule: upstream at its commit =a350d0e= (2026-03-28) plus =extract_panel_prop.py= and

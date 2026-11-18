@@ -30,15 +30,31 @@ tar -xJf "$tarball" -C src --strip-components=1 \
 	"$top/drivers/gpu/drm/i915" "$top/drivers/platform/x86/intel_ips.h"
 
 # Upstream's patch also adds its object to the Xe driver's Makefile; only i915
-# is rebuilt here, so only its files are patched.
+# is rebuilt here, so only its files are patched. Its hunk for i915's Makefile
+# is left out too: the object list around it changes between kernels (7.3
+# added intel_dp_link_caps.o), so the object is added after
+# intel_dp_aux_backlight.o below instead.
 up=upstream/linux-legacy-oled-brightness.patch
 [ -f "$up" ] || die "$up missing"
-awk '/^diff --git /{ keep = ($3 ~ /^a\/drivers\/gpu\/drm\/i915\//) } keep' "$up" \
+awk '/^diff --git /{ keep = ($3 ~ /^a\/drivers\/gpu\/drm\/i915\//) &&
+	$3 != "a/drivers/gpu/drm/i915/Makefile" } keep' "$up" \
 	>src/upstream-i915.patch
 [ -s src/upstream-i915.patch ] || die "$up has no i915 part"
 echo "i915-legacy-oled: applying $up (i915 part)"
 patch -d src -p1 -F0 --no-backup-if-mismatch -s < src/upstream-i915.patch ||
 	die "$up does not apply to linux-source-$series $src_ver"
+
+mk=src/drivers/gpu/drm/i915/Makefile
+# shellcheck disable=SC1003  # the trailing backslash is the Makefile's
+anchor='display/intel_dp_aux_backlight.o \'
+# shellcheck disable=SC1003
+obj='display/intel_dp_legacy_oled_brightness.o \'
+[ "$(grep -cxF "	$anchor" "$mk")" = 1 ] ||
+	die "$mk of linux-source-$series has no single line $anchor"
+A="	$anchor" O="	$obj" awk '{ print } $0 == ENVIRON["A"] { print ENVIRON["O"] }' \
+	"$mk" >"$mk.new"
+mv "$mk.new" "$mk"
+[ "$(grep -cxF "	$obj" "$mk")" = 1 ] || die "could not add $obj to $mk"
 
 for p in patches/*.patch; do
 	echo "i915-legacy-oled: applying $p"

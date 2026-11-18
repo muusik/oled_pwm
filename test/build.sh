@@ -8,7 +8,8 @@ set -o pipefail
 
 here=$(cd "$(dirname "$0")" && pwd)
 repo=$(dirname "$here")
-kver=${1:-7.2.15+deb14-amd64}
+kver=${1:-7.3.4+deb14-amd64}
+series=$(echo "$kver" | cut -d. -f1,2)
 image=localhost/oled_pwm-build
 
 # An apt-cacher-ng for the image's packages when BL_APT_PROXY names one
@@ -22,10 +23,10 @@ fi
 {
 "$repo/build-deb.sh"
 # shellcheck disable=SC2086  # proxy_secret is empty or two words
-podman build -q -t "$image" --build-arg KVER="$kver" \
+podman build -q -t "$image" --build-arg KVER="$kver" --build-arg SERIES="$series" \
 	$proxy_secret "$here" >/dev/null
 
-podman run --rm -v "$repo/dist:/dist:ro" -e KVER="$kver" -e P="${BL_APT_PROXY:-}" "$image" sh -euc '
+podman run --rm -v "$repo/dist:/dist:ro" -e KVER="$kver" -e SERIES="$series" -e P="${BL_APT_PROXY:-}" "$image" sh -euc '
 	apt="apt-get -y -q ${P:+-o Acquire::http::Proxy=$P -o Acquire::https::Proxy=DIRECT}"
 	initrd=/boot/initrd.img-$KVER
 	mods() { modinfo -k "$KVER" -n i915 kvmgt; }
@@ -50,15 +51,15 @@ podman run --rm -v "$repo/dist:/dist:ro" -e KVER="$kver" -e P="${BL_APT_PROXY:-}
 
 	echo "== 2. a kernel that comes before its linux-source"
 	dkms remove i915-legacy-oled/0.1 -k "$KVER"
-	mv /usr/src/linux-source-7.2.tar.xz /root/
+	mv /usr/src/linux-source-$SERIES.tar.xz /root/
 	rc=0; /etc/kernel/postinst.d/dkms "$KVER" || rc=$?
 	echo "kernel hook exit status: $rc"
 	[ "$rc" = 0 ]
 	! built
 	echo "-- linux-source arrives: the trigger builds it"
-	rm /root/linux-source-7.2.tar.xz
+	rm /root/linux-source-$SERIES.tar.xz
 	$apt update -qq
-	$apt install --reinstall linux-source-7.2
+	$apt install --reinstall linux-source-$SERIES
 	built
 	mods
 	in_initrd
