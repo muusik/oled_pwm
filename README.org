@@ -53,7 +53,8 @@ copy in this repository, so the module is Debian's i915 of the same kernel plus 
   kernel with headers and refreshes their initramfs. A trigger on =/usr/src= builds it for any
   kernel still without it whenever a package installs there, such as a newer =linux-source= that apt
   unpacked after the kernel.
-- =build-deb.sh= :: builds the package in a Debian 14 container (Podman) into =dist/=.
+- =build-deb.sh= :: builds the package into =dist/= with the machine's own Debian tools (the
+  =Build-Depends= of =debian/control=, on Debian 14).
 - =test/build.sh= :: builds the package and in a Debian 14 container with the laptop's kernel
   installs it, makes a kernel come before its =linux-source= and lets the trigger build it, and
   removes it; checking modprobe's choice of i915 and the initramfs each time. Output in
@@ -144,8 +145,9 @@ interface; the 2016-2018 panels use the older protocol this patch implements.
 test/build.sh [kernel version]
 #+end_src
 
-Needs Podman. With =BL_APT_PROXY= set to an apt-cacher-ng (=http://host:3142=), the images' apt goes
-through it; without it, straight to Debian's mirrors. =build-deb.sh= takes it too.
+Needs Podman for the test container, and what =build-deb.sh= needs. With =BL_APT_PROXY= set to an
+apt-cacher-ng (=http://host:3142=), the image's apt goes through it; without it, straight to
+Debian's mirrors.
 
 * License
 
