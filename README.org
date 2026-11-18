@@ -54,7 +54,8 @@ copy in this repository, so the module is Debian's i915 of the same kernel plus 
   kernel still without it whenever a package installs there, such as a newer =linux-source= that apt
   unpacked after the kernel.
 - =build-deb.sh= :: builds the package into =dist/= with the machine's own Debian tools (the
-  =Build-Depends= of =debian/control=, on Debian 14).
+  =Build-Depends= of =debian/control=, on Debian 14). In a bread_ladder session, those of its
+  =debian-forky= toolset (=.bl-tools=).
 - =test/build.sh= :: builds the package and in a Debian 14 container with the laptop's kernel
   installs it, makes a kernel come before its =linux-source= and lets the trigger build it, and
   removes it; checking modprobe's choice of i915 and the initramfs each time. Output in
