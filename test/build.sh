@@ -2,6 +2,9 @@
 # Build the .deb (build-deb.sh) and install, exercise and remove it in a
 # Debian 14 container with the laptop's kernel, as apt does there.
 # Usage: test/build.sh [kernel version]  (output also in test/build.log)
+# Runs on the host (Podman); bread_ladder sessions have no Podman. Without
+# dpkg-buildpackage it tests the .deb already in dist/, which a session
+# builds with ./build-deb.sh.
 set -eu
 # shellcheck disable=SC3040  # dash has it (Debian 12 on)
 set -o pipefail
@@ -26,8 +29,18 @@ if [ -n "${BL_APT_PROXY:-}" ]; then
 	proxy_secret="--secret id=apt_proxy,env=BL_APT_PROXY"
 fi
 
+deb=$repo/dist/i915-legacy-oled-dkms_${ver}_all.deb
+
 {
-"$repo/build-deb.sh"
+if command -v dpkg-buildpackage >/dev/null; then
+	"$repo/build-deb.sh"
+elif [ -f "$deb" ]; then
+	echo "no dpkg-buildpackage here: testing the .deb in dist/"
+	ls -l "$deb"
+else
+	echo "no dpkg-buildpackage here and no $deb: build it with ./build-deb.sh first" >&2
+	exit 1
+fi
 # shellcheck disable=SC2086  # proxy_secret is empty or two words
 podman build -q -t "$image" --build-arg KVER="$kver" --build-arg SERIES="$series" \
 	$proxy_secret "$here" >/dev/null

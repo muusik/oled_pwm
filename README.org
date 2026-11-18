@@ -71,7 +71,8 @@ copy in this repository, so the module is Debian's i915 of the same kernel plus 
   before its =linux-source= and lets the trigger build it, and removes it; checking modprobe's
   choice of i915 and the initramfs each time; purges it last. Output in =test/build.log=. Lenovo's
   driver package is downloaded by the first run only, into =~/.cache/oled_pwm= (=$XDG_CACHE_HOME=),
-  and given to the package's cache in the container after that.
+  and given to the package's cache in the container after that. Runs on the host, with its Podman: a
+  bread_ladder session has none.
 
 * Install on the laptop
 
@@ -163,9 +164,11 @@ interface; the 2016-2018 panels use the older protocol this patch implements.
 test/build.sh [kernel version]
 #+end_src
 
-Needs Podman for the test container, and what =build-deb.sh= needs. With =BL_APT_PROXY= set to an
-apt-cacher-ng (=http://host:3142=), the image's apt goes through it; without it, straight to
-Debian's mirrors.
+Run it on the host: it needs Podman for the test container, which bread_ladder sessions do not have
+(=.bl-tools= no longer selects the =podman= toolset). It builds the package with =build-deb.sh=
+first when =dpkg-buildpackage= is there; without it, it tests the =.deb= already in =dist/=, built
+in a session with =./build-deb.sh=. With =BL_APT_PROXY= set to an apt-cacher-ng
+(=http://host:3142=), the image's apt goes through it; without it, straight to Debian's mirrors.
 
 * License
 
