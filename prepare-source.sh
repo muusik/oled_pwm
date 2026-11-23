@@ -58,20 +58,35 @@ done
 # is rebuilt here, so only its files are patched. Its hunk for i915's Makefile
 # is left out too: the object list around it changes between kernels (7.3
 # added intel_dp_link_caps.o), so the object is added after
-# intel_dp_aux_backlight.o below instead. Its hunks for
-# intel_dp_aux_backlight.c are left out as well: 7.3.5 changed the code around
-# them (the DPCD backlight quirk), and
-# patches/0001-aux-backlight-legacy-interface.patch has them rebased.
+# intel_dp_aux_backlight.o below instead.
 up=upstream/linux-legacy-oled-brightness.patch
 [ -f "$up" ] || die "$up missing"
-awk '/^diff --git /{ keep = ($3 ~ /^a\/drivers\/gpu\/drm\/i915\//) &&
-	$3 != "a/drivers/gpu/drm/i915/Makefile" &&
-	$3 != "a/drivers/gpu/drm/i915/display/intel_dp_aux_backlight.c" } keep' "$up" \
+aux=a/drivers/gpu/drm/i915/display/intel_dp_aux_backlight.c
+awk -v aux="$aux" '/^diff --git /{ keep = ($3 ~ /^a\/drivers\/gpu\/drm\/i915\//) &&
+	$3 != "a/drivers/gpu/drm/i915/Makefile" && $3 != aux } keep' "$up" \
 	>src/upstream-i915.patch
 [ -s src/upstream-i915.patch ] || die "$up has no i915 part"
 echo "i915-legacy-oled: applying $up (i915 part)"
 patch -d src -p1 -F0 --no-backup-if-mismatch -s < src/upstream-i915.patch ||
 	die "$up does not apply to $from"
+
+# The hook in intel_dp_aux_backlight.c that enable_dpcd_backlight=99 selects:
+# upstream's hunks where they apply (up to 7.3.4), otherwise the first of
+# patches/aux-backlight/ that does (7.3.5.patch: rebased onto 7.3.5, which
+# added the DPCD backlight quirk next to them).
+awk -v aux="$aux" '/^diff --git /{ keep = ($3 == aux) } keep' "$up" \
+	>src/upstream-aux.patch
+[ -s src/upstream-aux.patch ] || die "$up has no hunks for $aux"
+fix=
+for p in src/upstream-aux.patch patches/aux-backlight/*.patch; do
+	patch -d src -p1 -F0 --dry-run -s < "$p" >/dev/null 2>&1 && { fix=$p; break; }
+done
+[ -n "$fix" ] ||
+	die "neither $up nor patches/aux-backlight/ applies to intel_dp_aux_backlight.c of $from"
+label=$fix
+[ "$fix" = src/upstream-aux.patch ] && label="$up (intel_dp_aux_backlight.c)"
+echo "i915-legacy-oled: applying $label"
+patch -d src -p1 -F0 --no-backup-if-mismatch -s < "$fix"
 
 mk=src/drivers/gpu/drm/i915/Makefile
 # shellcheck disable=SC1003  # the trailing backslash is the Makefile's

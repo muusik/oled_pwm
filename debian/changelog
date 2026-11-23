@@ -1,3 +1,11 @@
+i915-legacy-oled (0.5) unstable; urgency=medium
+
+  * Build on kernels before 7.3.5 again: upstream's hunks for
+    intel_dp_aux_backlight.c where they apply, otherwise
+    patches/aux-backlight/7.3.5.patch.
+
+ -- Johannes Dahl <muusik@gmail.com>  Mon, 23 Nov 2026 20:30:00 +0000
+
 i915-legacy-oled (0.4) unstable; urgency=medium
 
   * Keep each kernel's i915 source in /var/cache/i915-legacy-oled/src and
