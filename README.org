@@ -29,7 +29,9 @@ copy in this repository, so the module is Debian's i915 of the same kernel plus 
   the same structures) into =updates/dkms=, which modprobe prefers over the stock ones. A kernel
   whose =linux-source= of the same Debian version is not installed counts as not applicable (DKMS's
   exit 77): no build and no error, so a kernel upgrade never fails over it; the stock i915 is used
-  there until the source arrives.
+  there until the source arrives. Each build keeps its kernel's i915 source in
+  =/var/cache/i915-legacy-oled/src= (until that kernel's headers are removed), so the module is
+  rebuilt for older kernels after =linux-source= has moved on, as when this package is upgraded.
 - =prepare-source.sh= :: the DKMS pre-build step: unpacks =drivers/gpu/drm/i915= from
   =/usr/src/linux-source-<major.minor>.tar.xz= and applies the i915 part of upstream's patch and
   =patches/=, checking the version match once more. Upstream's hunk for i915's =Makefile= is left
@@ -81,10 +83,10 @@ copy in this repository, so the module is Debian's i915 of the same kernel plus 
 * Install on the laptop
 
 Build the package here (=./build-deb.sh=, in a checkout with its submodule), copy
-=dist/i915-legacy-oled-dkms_0.3_all.deb= over and, as root:
+=dist/i915-legacy-oled-dkms_0.4_all.deb= over and, as root:
 
 #+begin_src sh
-apt install ./i915-legacy-oled-dkms_0.3_all.deb
+apt install ./i915-legacy-oled-dkms_0.4_all.deb
 #+end_src
 
 The installation downloads Lenovo's driver package (about 330 KB, through =https_proxy= if set),

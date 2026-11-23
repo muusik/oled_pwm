@@ -1,3 +1,11 @@
+i915-legacy-oled (0.4) unstable; urgency=medium
+
+  * Keep each kernel's i915 source in /var/cache/i915-legacy-oled/src and
+    build from it once linux-source has moved on: upgrading the package
+    no longer drops the module of older kernels.
+
+ -- Johannes Dahl <muusik@gmail.com>  Mon, 23 Nov 2026 20:10:00 +0000
+
 i915-legacy-oled (0.3) unstable; urgency=medium
 
   * Build on Linux 7.3.5: upstream's hunks for intel_dp_aux_backlight.c,
