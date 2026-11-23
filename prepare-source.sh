@@ -33,11 +33,15 @@ tar -xJf "$tarball" -C src --strip-components=1 \
 # is rebuilt here, so only its files are patched. Its hunk for i915's Makefile
 # is left out too: the object list around it changes between kernels (7.3
 # added intel_dp_link_caps.o), so the object is added after
-# intel_dp_aux_backlight.o below instead.
+# intel_dp_aux_backlight.o below instead. Its hunks for
+# intel_dp_aux_backlight.c are left out as well: 7.3.5 changed the code around
+# them (the DPCD backlight quirk), and
+# patches/0001-aux-backlight-legacy-interface.patch has them rebased.
 up=upstream/linux-legacy-oled-brightness.patch
 [ -f "$up" ] || die "$up missing"
 awk '/^diff --git /{ keep = ($3 ~ /^a\/drivers\/gpu\/drm\/i915\//) &&
-	$3 != "a/drivers/gpu/drm/i915/Makefile" } keep' "$up" \
+	$3 != "a/drivers/gpu/drm/i915/Makefile" &&
+	$3 != "a/drivers/gpu/drm/i915/display/intel_dp_aux_backlight.c" } keep' "$up" \
 	>src/upstream-i915.patch
 [ -s src/upstream-i915.patch ] || die "$up has no i915 part"
 echo "i915-legacy-oled: applying $up (i915 part)"

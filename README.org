@@ -34,7 +34,8 @@ copy in this repository, so the module is Debian's i915 of the same kernel plus 
   =/usr/src/linux-source-<major.minor>.tar.xz= and applies the i915 part of upstream's patch and
   =patches/=, checking the version match once more. Upstream's hunk for i915's =Makefile= is left
   out, as its context changes between kernels (7.3 added =intel_dp_link_caps.o=): the script adds
-  the object after =intel_dp_aux_backlight.o= itself.
+  the object after =intel_dp_aux_backlight.o= itself. Its hunks for =intel_dp_aux_backlight.c= are
+  left out as well, for =patches/0001-aux-backlight-legacy-interface.patch=.
 - =upstream/= :: the fork
   [[https://github.com/muusik/oled_pwm_extract_panel_prop][oled_pwm_extract_panel_prop]] as a git
   submodule: upstream at its commit =a350d0e= (2026-03-28) plus =extract_panel_prop.py= (with its
@@ -44,6 +45,9 @@ copy in this repository, so the module is Debian's i915 of the same kernel plus 
   clone with =--recurse-submodules=, or =git submodule update --init=.
 - =upstream/linux-legacy-oled-brightness.patch= :: upstream's patch; its hunk for the Xe driver is
   not applied.
+- =patches/0001-aux-backlight-legacy-interface.patch= :: upstream's hunks for
+  =intel_dp_aux_backlight.c= (the =enable_dpcd_backlight=99= hook), rebased onto 7.3.5, which added
+  the DPCD backlight quirk next to them.
 - =patches/0002-module-firmware.patch= :: declares the firmware file with =MODULE_FIRMWARE=, so that
   =update-initramfs= copies it into the initramfs next to i915.
 - =i915-legacy-oled-fetch= :: generates =/usr/lib/firmware/intel_legacy_panel_data.bin=, the panel
@@ -77,10 +81,10 @@ copy in this repository, so the module is Debian's i915 of the same kernel plus 
 * Install on the laptop
 
 Build the package here (=./build-deb.sh=, in a checkout with its submodule), copy
-=dist/i915-legacy-oled-dkms_0.2_all.deb= over and, as root:
+=dist/i915-legacy-oled-dkms_0.3_all.deb= over and, as root:
 
 #+begin_src sh
-apt install ./i915-legacy-oled-dkms_0.2_all.deb
+apt install ./i915-legacy-oled-dkms_0.3_all.deb
 #+end_src
 
 The installation downloads Lenovo's driver package (about 330 KB, through =https_proxy= if set),

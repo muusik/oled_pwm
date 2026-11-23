@@ -1,3 +1,10 @@
+i915-legacy-oled (0.3) unstable; urgency=medium
+
+  * Build on Linux 7.3.5: upstream's hunks for intel_dp_aux_backlight.c,
+    rebased, as patches/0001-aux-backlight-legacy-interface.patch.
+
+ -- Johannes Dahl <muusik@gmail.com>  Mon, 23 Nov 2026 19:50:00 +0000
+
 i915-legacy-oled (0.2) unstable; urgency=medium
 
   * Generate the panel data firmware at installation from Lenovo's driver

@@ -1,0 +1,48 @@
+--- a/drivers/gpu/drm/i915/display/intel_dp_aux_backlight.c
++++ b/drivers/gpu/drm/i915/display/intel_dp_aux_backlight.c
+@@ -40,6 +40,7 @@
+ #include "intel_display_core.h"
+ #include "intel_display_types.h"
+ #include "intel_dp.h"
++#include "intel_dp_legacy_oled_brightness.h"
+ #include "intel_dp_aux_backlight.h"
+ #include "intel_quirks.h"
+ 
+@@ -101,6 +102,7 @@
+ 	INTEL_DP_AUX_BACKLIGHT_ON = 1,
+ 	INTEL_DP_AUX_BACKLIGHT_FORCE_VESA = 2,
+ 	INTEL_DP_AUX_BACKLIGHT_FORCE_INTEL = 3,
++	INTEL_DP_AUX_BACKLIGHT_LEGACY = 99,
+ };
+ 
+ static bool is_intel_tcon_cap(const u8 tcon_cap[4])
+@@ -687,7 +689,7 @@
+ 	struct intel_dp *intel_dp = intel_attached_dp(connector);
+ 	struct drm_device *dev = connector->base.dev;
+ 	struct intel_panel *panel = &connector->panel;
+-	bool try_intel_interface = false, try_vesa_interface = false;
++	bool try_intel_interface = false, try_vesa_interface = false, try_legacy_interface = false;
+ 	int enable_dpcd_backlight;
+ 
+ 	/*
+@@ -738,6 +740,9 @@
+ 	case INTEL_DP_AUX_BACKLIGHT_FORCE_INTEL:
+ 		try_intel_interface = true;
+ 		break;
++	case INTEL_DP_AUX_BACKLIGHT_LEGACY:
++		try_legacy_interface = true;
++		break;
+ 	}
+ 
+ 	/* For eDP 1.5 and above we are supposed to use VESA interface for brightness control */
+@@ -772,5 +777,10 @@
+ 		return 0;
+ 	}
+ 
++	if (try_legacy_interface && intel_dp_aux_legacy_brightness_supported(connector)) {
++		panel->backlight.funcs = intel_dp_aux_legacy_get_bl_funcs();
++		return 0;
++	}
++
+ 	return -ENODEV;
+ }

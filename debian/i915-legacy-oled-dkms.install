@@ -1,6 +1,6 @@
-prepare-source.sh usr/src/i915-legacy-oled-0.2/
-patches usr/src/i915-legacy-oled-0.2/
-upstream/linux-legacy-oled-brightness.patch usr/src/i915-legacy-oled-0.2/upstream/
+prepare-source.sh usr/src/i915-legacy-oled-0.3/
+patches usr/src/i915-legacy-oled-0.3/
+upstream/linux-legacy-oled-brightness.patch usr/src/i915-legacy-oled-0.3/upstream/
 upstream/extract_panel_prop.py usr/share/i915-legacy-oled/
 upstream/x86_64_decode.py usr/share/i915-legacy-oled/
 i915-legacy-oled-fetch usr/sbin/
